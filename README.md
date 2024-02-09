@@ -9,3 +9,5 @@ This is just a playground for me to use zig abit more.
 References:
 https://en.wikipedia.org/wiki/List_of_POSIX_commands 
 https://en.wikipedia.org/wiki/List_of_GNU_Core_Utilities_commands
+
+LICENSE: GPLv3
