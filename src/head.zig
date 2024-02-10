@@ -1,6 +1,8 @@
 const clap = @import("clap");
 const std = @import("std");
 
+const CLI = @import("helpers/cli.zig").CLI;
+
 const debug = std.debug;
 const io = std.io;
 const process = std.process;
@@ -20,19 +22,21 @@ const parsers = .{
     .FILE = clap.parsers.string,
 };
 
+const cli = CLI(&params, parsers, description);
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     var allocator = gpa.allocator();
 
-    var res = try getCommandLineArguments(allocator);
+    var res = try cli.getCommandLineArguments(allocator);
     defer res.deinit();
 
     var stdout = io.getStdOut().writer();
     var stderr = io.getStdErr().writer();
 
     if (res.args.help != 0) {
-        try printUsageAndHelp(allocator, stderr, null);
+        try cli.printUsageAndHelp(allocator, stderr, null);
         return process.exit(0);
     }
 
@@ -61,33 +65,4 @@ pub fn main() !void {
         try stdout.print("{s}\n", .{line});
         lines_read += 1;
     }
-}
-
-fn getCommandLineArguments(allocator: std.mem.Allocator) !clap.Result(clap.Help, &params, parsers) {
-    var diagnostic = clap.Diagnostic{};
-
-    var res = clap.parse(clap.Help, &params, parsers, .{
-        .diagnostic = &diagnostic,
-        .allocator = allocator,
-    }) catch |err| {
-        diagnostic.report(io.getStdErr().writer(), err) catch {};
-        return err;
-    };
-
-    return res;
-}
-
-fn printUsageAndHelp(allocator: std.mem.Allocator, stream: anytype, message: ?[]const u8) !void {
-    const args = try process.argsAlloc(allocator);
-    defer process.argsFree(allocator, args);
-    var program = args[0];
-
-    if (message) |msg| {
-        try stream.print("{s}\n", .{msg});
-    }
-
-    try stream.print("Usage: {s} ", .{program});
-    try clap.usage(stream, clap.Help, &params);
-    try stream.print("\n{s}\n", .{description});
-    try clap.help(stream, clap.Help, &params, .{});
 }
