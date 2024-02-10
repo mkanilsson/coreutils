@@ -6,6 +6,7 @@ const programs = [_][]const u8{
     "false",
     "head",
     "printenv",
+    "sleep",
     "true",
     "yes",
 };
