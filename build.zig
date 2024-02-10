@@ -1,6 +1,14 @@
 const std = @import("std");
 
-const programs = [_][]const u8{ "head", "yes", "false", "true", "basename", "printenv", "cat" };
+const programs = [_][]const u8{
+    "basename",
+    "cat",
+    "false",
+    "head",
+    "printenv",
+    "true",
+    "yes",
+};
 
 pub fn build(b: *std.Build) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
