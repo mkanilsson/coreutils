@@ -3,7 +3,6 @@ const std = @import("std");
 
 const CLI = @import("helpers/cli.zig").CLI;
 
-const debug = std.debug;
 const io = std.io;
 const process = std.process;
 
@@ -32,31 +31,41 @@ pub fn main() !void {
     var res = try cli.getCommandLineArguments(allocator);
     defer res.deinit();
 
-    var stdout = io.getStdOut().writer();
+    var lines = res.args.lines orelse 10;
+    const stdin = io.getStdIn().reader();
 
-    var reader = if (res.positionals.len == 0) blk: {
-        break :blk io.getStdIn().reader();
-    } else blk: {
+    if (res.positionals.len == 0) {
+        try printHead(allocator, stdin, lines);
+    } else {
         var file_path = res.positionals[0];
-
         var file = try std.fs.cwd().openFile(file_path, .{});
         defer file.close();
 
-        break :blk file.reader();
-    };
+        try printHead(allocator, file.reader(), lines);
+    }
+}
 
-    var lines = res.args.lines orelse 10;
-
+fn printHead(allocator: std.mem.Allocator, reader: anytype, lines: usize) !void {
     var buf_reader = std.io.bufferedReader(reader);
     var in_stream = buf_reader.reader();
 
-    var buf: [1024]u8 = undefined;
     var lines_read: usize = 0;
-    while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+    while (true) {
+        var line = std.ArrayList(u8).init(allocator);
+        defer line.deinit();
+
+        in_stream.streamUntilDelimiter(line.writer(), '\n', null) catch |err| {
+            if (err == error.EndOfStream) break;
+            return err;
+        };
+
         if (lines_read == lines)
             break;
 
-        try stdout.print("{s}\n", .{line});
+        const line_slice = try line.toOwnedSlice();
+        defer allocator.free(line_slice);
+
+        try io.getStdOut().writer().print("{s}\n", .{line_slice});
         lines_read += 1;
     }
 }
