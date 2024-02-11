@@ -40,31 +40,41 @@ pub fn main() !void {
     const show_ends = res.args.@"show-ends" != 0;
 
     if (res.positionals.len == 0) {
-        try printFile(io.getStdIn().reader(), stdout, show_line_numbers, show_ends);
+        try printFile(allocator, io.getStdIn().reader(), stdout, show_line_numbers, show_ends);
     } else {
         for (res.positionals) |file_path| {
             if (std.mem.eql(u8, file_path, "-")) {
-                try printFile(io.getStdIn().reader(), stdout, show_line_numbers, show_ends);
+                try printFile(allocator, io.getStdIn().reader(), stdout, show_line_numbers, show_ends);
             } else {
                 var file = try std.fs.cwd().openFile(file_path, .{});
                 defer file.close();
 
-                try printFile(file.reader(), stdout, show_line_numbers, show_ends);
+                try printFile(allocator, file.reader(), stdout, show_line_numbers, show_ends);
             }
         }
     }
 }
 
-fn printFile(in_stream: anytype, out_stream: anytype, show_line_numbers: bool, show_ends: bool) !void {
+fn printFile(allocator: std.mem.Allocator, in_stream: anytype, out_stream: anytype, show_line_numbers: bool, show_ends: bool) !void {
     var buf_reader = std.io.bufferedReader(in_stream);
     var buf_in_stream = buf_reader.reader();
 
-    var buf: [1024]u8 = undefined;
+    while (true) {
+        var line = std.ArrayList(u8).init(allocator);
+        defer line.deinit();
 
-    while (try buf_in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+        buf_in_stream.streamUntilDelimiter(line.writer(), '\n', null) catch |err| {
+            if (err == error.EndOfStream) break;
+            return err;
+        };
+
+        const line_slice = try line.toOwnedSlice();
+        defer allocator.free(line_slice);
+
         if (show_line_numbers)
             try out_stream.print("{d: >6}  ", .{line_number});
-        try out_stream.print("{s}", .{line});
+
+        try out_stream.print("{s}", .{line_slice});
 
         try out_stream.print("{s}\n", .{if (show_ends)
             "$"
