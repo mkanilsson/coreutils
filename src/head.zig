@@ -33,12 +33,6 @@ pub fn main() !void {
     defer res.deinit();
 
     var stdout = io.getStdOut().writer();
-    var stderr = io.getStdErr().writer();
-
-    if (res.args.help != 0) {
-        try cli.printUsageAndHelp(allocator, stderr, null);
-        return process.exit(0);
-    }
 
     var reader = if (res.positionals.len == 0) blk: {
         break :blk io.getStdIn().reader();

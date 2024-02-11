@@ -35,11 +35,6 @@ pub fn main() !void {
     var stdout = io.getStdOut().writer();
     var stderr = io.getStdErr().writer();
 
-    if (res.args.help != 0) {
-        try cli.printUsageAndHelp(allocator, stderr, null);
-        return process.exit(0);
-    }
-
     if (res.positionals.len < 1) {
         try cli.printUsageAndHelp(allocator, stderr, "Missing pathname");
         return process.exit(1);

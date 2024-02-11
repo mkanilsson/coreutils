@@ -14,8 +14,16 @@ pub fn CLI(comptime params: []const clap.Param(clap.Help), comptime parsers: any
                 .allocator = allocator,
             }) catch |err| {
                 diagnostic.report(io.getStdErr().writer(), err) catch {};
+                try printUsageAndHelp(allocator, std.io.getStdErr().writer(), null);
                 return err;
             };
+
+            if (@hasField(std.meta.fieldInfo(clap.Result(clap.Help, params, parsers), .args).type, "help")) {
+                if (res.args.help != 0) {
+                    try printUsageAndHelp(allocator, std.io.getStdErr().writer(), null);
+                    return process.exit(0);
+                }
+            }
 
             return res;
         }

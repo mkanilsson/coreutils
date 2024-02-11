@@ -31,12 +31,5 @@ pub fn main() !void {
     var res = try cli.getCommandLineArguments(allocator);
     defer res.deinit();
 
-    var stderr = io.getStdErr().writer();
-
-    if (res.args.help != 0) {
-        try cli.printUsageAndHelp(allocator, stderr, null);
-        return process.exit(0);
-    }
-
     std.time.sleep(@intFromFloat(res.positionals[0] * std.time.ns_per_s));
 }

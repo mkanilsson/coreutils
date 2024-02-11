@@ -30,12 +30,6 @@ pub fn main() !void {
     defer res.deinit();
 
     var stdout = io.getStdOut().writer();
-    var stderr = io.getStdErr().writer();
-
-    if (res.args.help != 0) {
-        try cli.printUsageAndHelp(allocator, stderr, null);
-        return process.exit(0);
-    }
 
     var message = if (res.positionals.len > 0) blk: {
         var current: ?[]u8 = null;

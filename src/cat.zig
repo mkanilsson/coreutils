@@ -35,12 +35,6 @@ pub fn main() !void {
     defer res.deinit();
 
     var stdout = io.getStdOut().writer();
-    var stderr = io.getStdErr().writer();
-
-    if (res.args.help != 0) {
-        try cli.printUsageAndHelp(allocator, stderr, null);
-        return process.exit(0);
-    }
 
     const show_line_numbers = res.args.number != 0;
     const show_ends = res.args.@"show-ends" != 0;
