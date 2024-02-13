@@ -2,6 +2,7 @@ const clap = @import("clap");
 const std = @import("std");
 
 const CLI = @import("shared/cli.zig").CLI;
+const DefaultAllocator = @import("shared/mem.zig").DefaultAllocator;
 
 const io = std.io;
 const process = std.process;
@@ -24,9 +25,9 @@ const cli = CLI(&params, parsers, description);
 var line_number: usize = 1;
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    var allocator = gpa.allocator();
+    var default_allocator = DefaultAllocator;
+    defer _ = default_allocator.deinit();
+    var allocator = default_allocator.allocator();
 
     var res = try cli.getCommandLineArguments(allocator);
     defer res.deinit();
