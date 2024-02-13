@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const programs = [_][]const u8{
+    "base64",
     "basename",
     "cat",
     "false",
