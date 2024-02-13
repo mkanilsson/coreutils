@@ -1,7 +1,7 @@
 const clap = @import("clap");
 const std = @import("std");
 
-const CLI = @import("helpers/cli.zig").CLI;
+const CLI = @import("shared/cli.zig").CLI;
 
 const io = std.io;
 const process = std.process;
